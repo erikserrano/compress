@@ -6,12 +6,11 @@ import (
 	"os"
 	"time"
 	"archive/zip"
-	"github.com/erik1951/compress"
+	"github.com/erikserrano/compress"
 )
 
 var (
-	// Colección encargada de almacenar información de los directorios/archivos creados
-	files compress.ZipFiles
+files compress.ZipFiles
 )
 
 // Función encargada de crear un directorio

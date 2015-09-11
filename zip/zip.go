@@ -5,24 +5,12 @@ import (
 	"archive/zip"
 	"io"
 	"os"
+	"github.com/erikserrano/compress"
 )
 
-// Estructura enacargada de archivar la información del directorio/arhivo comprimido
-type ZipContent struct {
-	FileName    string `json:"file_name"`
-	IsDirectory bool   `json:"is_directory"`
-	Size        int64  `json:"size"`
-	Error       error  `json:"size"`
-}
-
 var (
-	// Variable encagada de almacenar el archivo zip
-	zipFile   *os.File
-	
-	// Variable encargaa de almacenar el writer 
+	zipFile   *os.File 
 	zipWriter *zip.Writer
-	       
-	// Colección encargada de almacenar información de los directorios/archivos comprimidos
 	files     map[int]ZipContent
 )
 
