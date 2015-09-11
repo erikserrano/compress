@@ -2,15 +2,15 @@
 package unzip
 
 import (
+	"archive/zip"
+	"github.com/erikserrano/compress"
 	"io"
 	"os"
 	"time"
-	"archive/zip"
-	"github.com/erikserrano/compress"
 )
 
 var (
-files compress.ZipFiles
+	files compress.ZipFiles
 )
 
 // Función encargada de crear un directorio
@@ -87,7 +87,7 @@ func Unzip(pathFile, pathDestination string) (map[int]ZipContent, error) {
 				IsDirectory: true,
 				Size:        0,
 				Error:       err,
-				CreatedAt: time.Now(),
+				CreatedAt:   time.Now(),
 			}
 		} else {
 			// Copiamos archivo
@@ -98,7 +98,7 @@ func Unzip(pathFile, pathDestination string) (map[int]ZipContent, error) {
 				IsDirectory: false,
 				Size:        size,
 				Error:       err,
-				CreatedAt: time.Now(),
+				CreatedAt:   time.Now(),
 			}
 		}
 	}

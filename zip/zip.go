@@ -3,13 +3,13 @@ package zip
 
 import (
 	"archive/zip"
+	"github.com/erikserrano/compress"
 	"io"
 	"os"
-	"github.com/erikserrano/compress"
 )
 
 var (
-	zipFile   *os.File 
+	zipFile   *os.File
 	zipWriter *zip.Writer
 	files     map[int]ZipContent
 )
