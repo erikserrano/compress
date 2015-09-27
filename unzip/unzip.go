@@ -1,16 +1,25 @@
-// Paquete encargado de descomprimir un archivo zip comprimido en 32 bits
+// Paquete unzip encargado de descomprimir un archivo zip comprimido en 32 bits
 package unzip
 
 import (
 	"archive/zip"
-	"github.com/erikserrano/compress"
 	"io"
 	"os"
 	"time"
 )
 
+// Estructura enacargada de archivar la información del directorio/arhivo comprimido/descomprimio
+type ZipContent struct {
+	FileName    string    `json:"file_name"`
+	IsDirectory bool      `json:"is_directory"`
+	Size        int64     `json:"size"`
+	Error       error     `json:"error"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+
 var (
-	files compress.ZipFiles
+	files map[int]ZipFiles
 )
 
 // Función encargada de crear un directorio
@@ -60,7 +69,7 @@ func copyFile(path string, file *zip.File) (int64, string, error) {
 
 // Función encargada de descomprimir un archivo zip (32 bits)
 func Unzip(pathFile, pathDestination string) (map[int]ZipContent, error) {
-	files = make(map[int]compress.ZipContent)
+	files = make(map[int]ZipContent)
 
 	// Creamos la ruta de destino
 	_, err := createDirectory(pathDestination, os.ModePerm)
