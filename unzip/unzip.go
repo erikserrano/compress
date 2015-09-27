@@ -17,7 +17,6 @@ type ZipContent struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-
 var (
 	files map[int]ZipFiles
 )
