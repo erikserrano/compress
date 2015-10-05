@@ -5,21 +5,6 @@ import (
 	"archive/zip"
 	"io"
 	"os"
-	"time"
-)
-
-// Estructura enacargada de archivar la información del directorio/arhivo comprimido/descomprimio
-type ZipContent struct {
-	FileName    string    `json:"file_name"`
-	IsDirectory bool      `json:"is_directory"`
-	Size        int64     `json:"size"`
-	Error       error     `json:"error"`
-	CreatedAt   time.Time `json:"created_at"`
-}
-
-var (
-	zipFile   *os.File
-	zipWriter *zip.Writer
 )
 
 // Función encargada de elimina un directorio/archivo
@@ -76,7 +61,7 @@ func openPath(path string) (*os.File, error) {
 }
 
 // Función encargada de recorrer un directorio y agregar los archivos al ZIP
-func walkDirectory(directory *os.File) error {
+func walkDirectory(directory *os.File, zipWriter *zip.Writer) error {
 	// Leemos contenido del directorio
 	content, err := directory.Readdir(-1)
 	if err != nil {
@@ -105,13 +90,13 @@ func walkDirectory(directory *os.File) error {
 			dir, err := openPath(directory.Name() + "/" + val.Name())
 			if err != nil {
 				return err
-			}			
-			err = walkDirectory(dir)
+			}
+			err = walkDirectory(dir, zipWriter)
 			if err != nil {
 				return err
 			}
 		}
-	}	
+	}
 
 	// Cerramos directorio
 	directory.Close()
@@ -135,7 +120,7 @@ func Zip(startPath, finalFileName, finalFilePath string) error {
 	}
 
 	// Creamos archivo ZIP
-	zipFile, err = createFile(finalFilePath + finalFileName)
+	zipFile, err := createFile(finalFilePath + finalFileName)
 	if err != nil {
 		return err
 	}
@@ -143,12 +128,12 @@ func Zip(startPath, finalFileName, finalFilePath string) error {
 	defer zipFile.Close()
 
 	// Creamos writer para el archivo ZIP
-	zipWriter = zip.NewWriter(zipFile)
+	zipWriter := zip.NewWriter(zipFile)
 	// Cerramos Writer
 	defer zipWriter.Close()
 
 	// Iniciamos recorrido del directorio
-	if err := walkDirectory(startDirectory); err != nil {
+	if err := walkDirectory(startDirectory, zipWriter); err != nil {
 		return err
 	}
 	return nil
