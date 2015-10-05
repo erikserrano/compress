@@ -1,4 +1,4 @@
-// Paquete encargado de comprimir un archivo zip en 32 bits
+// Paquete zip encargado de comprimir un archivo zip en 32 bits
 package zip
 
 import (
@@ -23,7 +23,7 @@ func createFile(filePath string) (*os.File, error) {
 		return nil, err
 	}
 	// Asignamos permisos al archivo
-	err = file.Chmod(0777)
+	//err = file.Chmod(0777)
 	return file, err
 }
 
