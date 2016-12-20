@@ -61,67 +61,82 @@ func openPath(path string) (*os.File, error) {
 }
 
 // Función encargada de recorrer un directorio y agregar los archivos al ZIP
-func walkDirectory(directory *os.File, zipWriter *zip.Writer) error {
+func walkDirectory(directory *os.File, zipWriter *zip.Writer) ([]os.FileInfo, error) {
+	files := make([]os.FileInfo, 0)
+
 	// Leemos contenido del directorio
 	content, err := directory.Readdir(-1)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Recorremos contenido del directorio
 	for _, val := range content {
 		if !val.IsDir() {
+
 			// Es un archivo: anrimos el archivo y lo agregamos al Writer
 			file, err := openPath(directory.Name() + "/" + val.Name())
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			// Agregamos un archivo al ZIP
 			fileWriter, err := zipWriter.Create(file.Name())
 			if err != nil {
 				file.Close()
-				return err
+				return nil, err
 			}
 			// Escrivimos sobre el nuevo archivo ZIP
 			_, err = copyContent(file, fileWriter)
+
+			if err != nil {
+				return files, err
+			}
+
+			fileInfo, err := file.Stat()
+			if err != nil {
+				return files, err
+			}
+
+			files = append(files, fileInfo)
 		} else {
 			// Es un directorio: abrimos el directorio y recorremos su contenido
 			dir, err := openPath(directory.Name() + "/" + val.Name())
 			if err != nil {
-				return err
+				return nil, err
 			}
-			err = walkDirectory(dir, zipWriter)
+			deepFiles, err := walkDirectory(dir, zipWriter)
 			if err != nil {
-				return err
+				return nil, err
 			}
+			files = append(files, deepFiles...)
 		}
 	}
 
 	// Cerramos directorio
 	directory.Close()
-	return nil
+	return nil, nil
 }
 
 // Función encargada de crear un archivo ZIP y escribir sobre él el contenido de un directorio/archivo
-func Zip(startPath, finalFileName, finalFilePath string) error {
+func Zip(startPath, finalFileName, finalFilePath string) ([]os.FileInfo, error) {
 	// Abrimos la ruta inicial
 	startDirectory, err := openPath(startPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Cerramos la ruta inicial
 	defer startDirectory.Close()
 
 	// Creamos directorio destino
 	if err := createDirectory(finalFilePath, 0777); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Creamos archivo ZIP
 	zipFile, err := createFile(finalFilePath + finalFileName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Cerramos archivo ZIP
 	defer zipFile.Close()
@@ -132,8 +147,6 @@ func Zip(startPath, finalFileName, finalFilePath string) error {
 	defer zipWriter.Close()
 
 	// Iniciamos recorrido del directorio
-	if err := walkDirectory(startDirectory, zipWriter); err != nil {
-		return err
-	}
-	return nil
+	files, err := walkDirectory(startDirectory, zipWriter)
+	return files, err
 }
