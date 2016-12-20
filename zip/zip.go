@@ -103,8 +103,7 @@ func walkDirectory(directory *os.File, zipWriter *zip.Writer) error {
 	return nil
 }
 
-// Función encargada de crear un archivo ZIP y escribir sobre él el contenido
-// de un directorio/archivo
+// Función encargada de crear un archivo ZIP y escribir sobre él el contenido de un directorio/archivo
 func Zip(startPath, finalFileName, finalFilePath string) error {
 	// Abrimos la ruta inicial
 	startDirectory, err := openPath(startPath)
