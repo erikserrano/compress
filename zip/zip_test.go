@@ -2,32 +2,43 @@ package zip
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"testing"
 )
 
-func TestZip(t *testing.T) {
+func showZipped(info []os.FileInfo) {
+	for _, val := range info {
+		println(val.Name())
+	}
+}
+
+func zipDirectory(inputPath, outputPath string, length int) error {
 	var wg sync.WaitGroup
-	for i := 0; i < 0; i++ {
+	var lastError error
+	for i := 0; i < length; i++ {
 		wg.Add(1)
 		go func(k int) {
 			defer wg.Done()
-			if files, err := Zip("E:/GoogleAPPEngine/Java/libs/", fmt.Sprintf("test-%v.zip", k), "C:/Users/Areté/Downloads/"); err != nil {
-				t.Fatal(err.Error())
+			if files, err := Zip(inputPath, fmt.Sprintf("test-%v.zip", k), outputPath); err != nil {
+				lastError = err
 			} else {
-				t.Logf("%v zipped", len(files))
+				showZipped(files)
 			}
 		}(i)
 	}
 	wg.Wait()
+	return lastError
+}
+
+func TestZip(t *testing.T) {
+	if err := zipDirectory("/Users/sero/gocode/pkg/", "/Users/sero/Downloads/", 10); err != nil {
+		t.Errorf("%s", err)
+	}
 }
 
 func BenchmarkZip(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		if files, err := Zip("E:/GoogleAPPEngine/Java/libs/", fmt.Sprintf("test-%v.zip", i), "C:/Users/Areté/Downloads/"); err != nil {
-			b.Fatal(err.Error())
-		} else {
-			b.Logf("%v zipped", len(files))
-		}
+	if err := zipDirectory("/Users/sero/gocode/pkg/", "/Users/sero/Downloads/", b.N); err != nil {
+		b.Errorf("%s", err)
 	}
 }
