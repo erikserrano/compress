@@ -1,6 +1,7 @@
 package zip
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -23,7 +24,12 @@ func zipDirectory(inputPath, outputPath string, length int) error {
 			if files, err := Zip(inputPath, fmt.Sprintf("test-%v.zip", k), outputPath); err != nil {
 				lastError = err
 			} else {
-				showZipped(files)
+				if len(files) == 0 {
+					lastError = errors.New("not data found")
+				} else {
+					showZipped(files)
+				}
+
 			}
 		}(i)
 	}

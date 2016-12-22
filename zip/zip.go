@@ -115,7 +115,7 @@ func walkDirectory(directory *os.File, zipWriter *zip.Writer) ([]os.FileInfo, er
 
 	// Cerramos directorio
 	directory.Close()
-	return nil, nil
+	return files, nil
 }
 
 // Función encargada de crear un archivo ZIP y escribir sobre él el contenido de un directorio/archivo
