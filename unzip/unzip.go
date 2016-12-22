@@ -46,7 +46,7 @@ func copyDirectory(path string, dir *zip.File) (string, error) {
 }
 
 // Función enacrgada de copiar un archivo
-func copyFile(path string, file *zip.File) (int64, string, error) {
+func copyFile(path string, file *zip.File) (*os.File, error) {
 	newFilePath := path + file.Name
 	if index := strings.Index(file.Name, "/"); index >= 0 {
 		newFilePath = path + string(file.Name[index+1:])
@@ -78,8 +78,8 @@ func copyFile(path string, file *zip.File) (int64, string, error) {
 }
 
 // Función encargada de descomprimir un archivo zip (32 bits)
-func Unzip(pathFile, pathDestination string) (map[int]ZipContent, error) {
-	files := make(map[int]ZipContent)
+func Unzip(pathFile, pathDestination string) ([]os.FileInfo, error) {
+	files := make([]os.FileInfo, 0)
 
 	// Creamos la ruta de destino
 	_, err := createDirectory(pathDestination, os.ModePerm)
@@ -95,28 +95,20 @@ func Unzip(pathFile, pathDestination string) (map[int]ZipContent, error) {
 	defer reader.Close()
 
 	// Recorremos el contenido del archivo ZIP
-	for i, f := range reader.File {
+	for _, f := range reader.File {
 		if f.FileInfo().IsDir() {
 			// Creamos directorio
-			path, err := copyDirectory(pathDestination, f)
-
-			files[i] = ZipContent{
-				FileName:    path,
-				IsDirectory: true,
-				Size:        0,
-				Error:       err,
-				CreatedAt:   time.Now(),
+			if _, err := copyDirectory(pathDestination, f); err != nil {
+				return nil, err
 			}
+
+			files = append(files, f.FileInfo())
 		} else {
 			// Copiamos archivo
-			size, path, err := copyFile(pathDestination, f)
-			files[i] = ZipContent{
-				FileName:    path,
-				IsDirectory: false,
-				Size:        size,
-				Error:       err,
-				CreatedAt:   time.Now(),
+			if _, _, err := copyFile(pathDestination, f); err != nil {
+				return nil, err
 			}
+			files = append(files, f.FileInfo())
 		}
 	}
 
