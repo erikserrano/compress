@@ -6,17 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
-	"time"
 )
-
-// Estructura enacargada de archivar la información del directorio/arhivo comprimido/descomprimio
-type ZipContent struct {
-	FileName    string    `json:"file_name"`
-	IsDirectory bool      `json:"is_directory"`
-	Size        int64     `json:"size"`
-	Error       error     `json:"error"`
-	CreatedAt   time.Time `json:"created_at"`
-}
 
 // Función encargada de crear un directorio
 func createDirectory(path string, mode os.FileMode) (string, error) {
@@ -46,7 +36,7 @@ func copyDirectory(path string, dir *zip.File) (string, error) {
 }
 
 // Función enacrgada de copiar un archivo
-func copyFile(path string, file *zip.File) (*os.File, error) {
+func copyFile(path string, file *zip.File) (os.FileInfo, error) {
 	newFilePath := path + file.Name
 	if index := strings.Index(file.Name, "/"); index >= 0 {
 		newFilePath = path + string(file.Name[index+1:])
@@ -55,7 +45,7 @@ func copyFile(path string, file *zip.File) (*os.File, error) {
 	// Creamos archivo destino
 	newFile, err := createFile(newFilePath)
 	if err != nil {
-		return 0, newFilePath, err
+		return nil, err
 	}
 	// Cerramos el archivo destino
 	defer newFile.Close()
@@ -63,18 +53,13 @@ func copyFile(path string, file *zip.File) (*os.File, error) {
 	// Abrimos archivo original
 	originalFile, err := file.Open()
 	if err != nil {
-		return 0, newFilePath, err
+		return nil, err
 	}
 
 	// Copiamos archivo
 	_, err = io.Copy(newFile, originalFile)
 
-	fileInfo, err := newFile.Stat()
-	if err != nil {
-		return 0, newFilePath, err
-	}
-
-	return fileInfo.Size(), newFilePath, nil
+	return newFile.Stat()
 }
 
 // Función encargada de descomprimir un archivo zip (32 bits)
@@ -105,10 +90,11 @@ func Unzip(pathFile, pathDestination string) ([]os.FileInfo, error) {
 			files = append(files, f.FileInfo())
 		} else {
 			// Copiamos archivo
-			if _, _, err := copyFile(pathDestination, f); err != nil {
+			fileInfo, err := copyFile(pathDestination, f)
+			if err != nil {
 				return nil, err
 			}
-			files = append(files, f.FileInfo())
+			files = append(files, fileInfo)
 		}
 	}
 
